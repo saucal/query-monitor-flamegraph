@@ -26,66 +26,107 @@ class QM_Collector extends \QM_Collector {
 	}
 
 	public function __construct() {
-		if ( ! function_exists( 'xhprof_sample_enable' ) ) {
+		if ( ! function_exists( 'xdebug_stop_trace' ) ) {
 			return;
 		}
 	}
 
 	public function process() {
 
-		if ( ! function_exists( 'xhprof_sample_disable' ) ) {
+		if ( ! function_exists( 'xdebug_stop_trace' ) ) {
 			return;
 		}
 
-		$stack = xhprof_sample_disable();
+		$trace_file = xdebug_stop_trace();
 
-		$this->data = $this->folded_to_hierarchical( $stack );
-	}
-
-	protected function folded_to_hierarchical( $stack ) {
-
-		$nodes = array( (object) array(
-			'name' => 'main()',
-			'value' => 1,
-			'children' => [],
-		) );
-
-		foreach ( $stack as $time => $call_stack ) {
-			$call_stack = explode( '==>', $call_stack );
-
-
-			$nodes = $this->add_children_to_nodes( $nodes, $call_stack );
-		}
-
-		return $nodes;
+		$this->data = $this->process_xdebug_trace( $trace_file );
 	}
 
 	/**
-	 * Accepts [ Node, Node ], [ main, wp-settings, sleep ]
+	 * Adapted from https://github.com/brendangregg/FlameGraph/blob/master/stackcollapse-xdebug.php.
 	 */
-	protected function add_children_to_nodes( $nodes, $children ) {
-		$last_node = $nodes ? $nodes[ count( $nodes ) - 1 ] : null;
-		$this_child = $children[0];
-		$time = (int) ini_get( 'xhprof.sampling_interval' );
+	protected function process_xdebug_trace( $filename ) {
 
-		if ( ! $time ) {
-			$time = 100000;
-		}
-		if ( $last_node && $last_node->name === $this_child ) {
-			$node = $last_node;
-			$node->value += ( $time / 1000 );
-		} else {
-			$nodes[] = $node = (object) array(
-				'name'	=> $this_child,
-				'value' => $time / 1000,
-				'children' => array(),
-			);
-		}
-		if ( count( $children ) > 1 ) {
-			$node->children = $this->add_children_to_nodes( $node->children, array_slice( $children, 1 ) );
+		$handle = fopen( $filename, 'r' );
+
+		if ( ! $handle ) {
+			return array();
 		}
 
-		return $nodes;
+		// Loop till we find TRACE START.
+		while ( $l = fgets( $handle ) ) {
+			if ( 0 === strpos( $l, 'TRACE START' ) ) {
+				break;
+			}
+		}
 
+		$root      = new Flamegraph_Leaf( '-1', '{main}', 0 );
+		$stack     = array();
+		$last_time = null;
+		$rows      = 0;
+
+		while ( $l = fgets( $handle ) ) {
+			// Check if we are at the beginning of a line
+			$is_level = is_numeric( substr( $l, 0, strpos( $l, "\t" ) ) );
+			if ( ! $is_level ) {
+				continue;
+			}
+
+			$rows++;
+			$is_eo_trace = false !== strpos( $l, 'TRACE END' );
+
+			if ( $is_eo_trace ) {
+				break;
+			}
+
+			$parts                                  = explode( "\t", $l );
+			list( $level, $fn_no, $is_exit, $time ) = $parts;
+
+			if ( $is_exit ) {
+				if ( ! end( $stack )->is( $fn_no ) ) {
+					continue;
+				}
+				$finishing = array_pop( $stack );
+				$finishing->end( $time );
+				continue;
+			}
+
+			if ( count( $stack ) >= 5 ) { // TODO: Make Depth Configurable
+				continue;
+			}
+
+			list( $level, $fn_no, $is_exit, $time, $mem_usage, $func_name, $fn_type, $inc_file ) = $parts;
+
+			if ( apply_filters( 'qm_flamegraph_append_filenames', true ) ) {
+				if ( in_array( $func_name, array( 'require', 'require_once', 'include', 'include_once' ) ) ) {
+					$func_name = "{$func_name} ({$inc_file})";
+				}
+			}
+
+			if ( $func_name === '{main}' ) {
+				$func_name = "{$inc_file}";
+			}
+
+			if ( $level == 1 ) {
+				$item = $root->add_children( $fn_no, $func_name, $time );
+			} else {
+				$item = end( $stack )->add_children( $fn_no, $func_name, $time );
+			}
+			$stack[] = $item;
+		}
+
+		if ( ! empty( $stack ) ) {
+			while ( ! empty( $stack ) ) {
+				$finishing = array_pop( $stack );
+				$finishing->end( $time );
+			}
+			$root->end( $time );
+		}
+
+		fclose( $handle );
+		unlink( $filename );
+
+		return $root;
 	}
+
 }

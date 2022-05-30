@@ -33,37 +33,62 @@ class QM_Output_Html extends \QM_Output_Html {
 		?>
 
 		<div class="qm" id="qm-flamegraph">
-			<div class="timestack-flamegraph">
-
-			</div>
-			<div id="qm-flamegraph-data" style="display: none"><?php echo json_encode( $this->collector->get_data()[0] ); ?></div>
-			<style>
+			<div id="qm-flamegraph-graph"></div>
+			<script type="text/javascript">
+				var data = <?php echo wp_json_encode( $this->collector->get_data() ); ?>
+			</script>
+				<style>
 				.d3-flame-graph-tip {
 					z-index: 99999;
 				}
 			</style>
+
+			<!-- D3.js -->
+			<script src="https://d3js.org/d3.v7.js" charset="utf-8"></script>
+
+			<!-- d3-flamegraph -->
+			<link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/d3-flame-graph@4.1.3/dist/d3-flamegraph.css">
+			<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/d3-flame-graph@4.1.3/dist/d3-flamegraph.js"></script>
+			<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/d3-flame-graph@4.1.3/dist/d3-flamegraph-tooltip.js"></script>
+
 			<script type="text/javascript">
-				var flameGraph = d3.flameGraph()
-					.height(540)
-					//.width(960)
-					.cellHeight(18)
-					.transitionDuration(350)
-					.transitionEase('cubic-in-out')
-					//.sort(true)
-					.title("Flamegraph (<?php echo sprintf( '%dms intervals', $time / 1000 ) ?>)")
+			var chart = flamegraph()
+			.width(1280)
+			.cellHeight(18)
+			.transitionDuration(750)
+			.minFrameSize(5)
+			.transitionEase(d3.easeCubic)
+			.sort(true)
+			//Example to sort in reverse order
+			//.sort(function(a,b){ return d3.descending(a.name, b.name);})
+			.title("")
+			.selfValue(false)
+			.setColorMapper((d, originalColor) =>
+				d.highlight ? "#6aff8f" : originalColor);
 
-				// Example on how to use custom tooltips using d3-tip.
-				var tip = d3.tip()
-					.direction("s")
-					.offset([8, 0])
-					.attr('class', 'd3-flame-graph-tip')
-					.html(function(d) { return "name: " + d.name + ", time: " + d.value + 'ms'; });
+			// Example on how to use custom a tooltip.
+			var tip = flamegraph.tooltip.defaultFlamegraphTooltip()
+			.text(d => "name: " + d.data.name + ", value: " + d.data.value);
+			chart.tooltip(tip);
 
-				flameGraph.tooltip(tip);
-				data = JSON.parse( document.getElementById( 'qm-flamegraph-data').innerHTML )
-					d3.select(".timestack-flamegraph")
-					.datum(data)
-					.call(flameGraph);
+			// Example on how to use searchById() function in flamegraph.
+			// To invoke this function after loading the graph itself, this function should be registered in d3 datum(data).call()
+			// (See d3.json invocation in this file)
+
+
+			// Example on how to use custom labels
+			// var label = function(d) {
+			//  return "name: " + d.name + ", value: " + d.value;
+			// }
+			// chart.label(label);
+
+			// Example of how to set fixed chart height
+			// chart.height(540);
+
+			d3.select("#qm-flamegraph-graph")
+				.datum(data)
+				.call(chart)
+
 			</script>
 		</div>
 		<?php
