@@ -187,8 +187,8 @@ class QM_Collector extends \QM_Collector {
 				$finishing = array_pop( $stack );
 				$finishing->end( $time );
 			}
-			$root->end( $time );
 		}
+		$root->end( $last_time );
 
 		if ( $func_name === 'xdebug_stop_trace' ) {
 			$root->pop();
