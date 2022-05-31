@@ -20,6 +20,7 @@ GNU General Public License for more details.
 class QM_Collector extends \QM_Collector {
 
 	public $id = 'flamegraph';
+	protected $data = array();
 
 	public function name() {
 		return __( 'Flamegraph', 'query-monitor' );
@@ -32,7 +33,6 @@ class QM_Collector extends \QM_Collector {
 	}
 
 	public function process() {
-
 		if ( ! function_exists( 'xdebug_stop_trace' ) ) {
 			return;
 		}

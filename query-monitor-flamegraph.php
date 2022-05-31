@@ -18,10 +18,17 @@ function register_qm_collector( array $collectors, \QueryMonitor $qm ) {
 add_filter( 'qm/collectors', 'QM_Flamegraph\register_qm_collector', 20, 2 );
 
 function register_qm_output( array $output, \QM_Collectors $collectors ) {
-	if ( $collector = \QM_Collectors::get( 'flamegraph' ) ) {
-		include_once dirname( __FILE__ ) . '/inc/class-qm-output-html.php';
-		$output['flamegraph'] = new QM_Output_Html( $collector );
+	$collector = \QM_Collectors::get( 'flamegraph' );
+	if ( ! $collector ) {
+		return $output;
 	}
+
+	if ( empty( $collector->get_data() ) ) {
+		return $output;
+	}
+
+	include_once dirname( __FILE__ ) . '/inc/class-qm-output-html.php';
+	$output['flamegraph'] = new QM_Output_Html( $collector );
 	return $output;
 }
 
