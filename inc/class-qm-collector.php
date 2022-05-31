@@ -140,7 +140,13 @@ class QM_Collector extends \QM_Collector {
 			}
 
 			$parts                                  = explode( "\t", $l );
-			list( $level, $fn_no, $is_exit, $time ) = $parts;
+			list( $real_level, $fn_no, $is_exit, $time ) = $parts;
+
+			$level = $real_level - $trace->start_lvl + 1;
+
+			if ( $level < 1 ) {
+				break; // We're below the starting level
+			}
 
 			if ( $is_exit ) {
 				if ( ! end( $stack )->is( $fn_no ) ) {
@@ -155,14 +161,7 @@ class QM_Collector extends \QM_Collector {
 				continue;
 			}
 
-			list( $level, $fn_no, $is_exit, $time, $mem_usage, $func_name, $fn_type, $inc_file, $filename ) = $parts;
-
-			$real_level = $level;
-			$level = $level - $trace->start_lvl + 1;
-
-			if ( $level < 1 ) {
-				break; // We're below the starting level
-			}
+			list( $real_level, $fn_no, $is_exit, $time, $mem_usage, $func_name, $fn_type, $inc_file, $filename ) = $parts;
 
 			if ( apply_filters( 'qm_flamegraph_append_filenames', true ) ) {
 				if ( in_array( $func_name, array( 'require', 'require_once', 'include', 'include_once' ) ) ) {
