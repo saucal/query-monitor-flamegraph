@@ -39,15 +39,17 @@ class QM_Collector extends \QM_Collector {
 
 		$trace_file = xdebug_stop_trace();
 
-		$this->data = $this->process_xdebug_trace( $trace_file );
+		$this->data = $this->process_xdebug_trace( array( 'file' => $trace_file ) );
 	}
 
 	/**
 	 * Adapted from https://github.com/brendangregg/FlameGraph/blob/master/stackcollapse-xdebug.php.
 	 */
-	protected function process_xdebug_trace( $filename ) {
+	protected function process_xdebug_trace( $trace ) {
 
-		$handle = fopen( $filename, 'r' );
+		$trace = (object) $trace;
+
+		$handle = fopen( $trace->file, 'r' );
 
 		if ( ! $handle ) {
 			return array();
@@ -60,7 +62,8 @@ class QM_Collector extends \QM_Collector {
 			}
 		}
 
-		$root      = new Flamegraph_Leaf( '-1', '{main}', 0 );
+		$time      = 0;
+		$root      = new Flamegraph_Leaf( '-1', '{main}', $time );
 		$stack     = array();
 		$last_time = null;
 		$rows      = 0;
@@ -124,7 +127,7 @@ class QM_Collector extends \QM_Collector {
 		}
 
 		fclose( $handle );
-		unlink( $filename );
+		unlink( $trace->file );
 
 		return $root;
 	}
