@@ -25,12 +25,6 @@ class QM_Output_Html extends \QM_Output_Html {
 	}
 
 	public function output() {
-		$time = (int) ini_get( 'xhprof.sampling_interval' );
-
-		if ( ! $time ) {
-			$time = 100000;
-		}
-
 		$data = $this->collector->get_data();
 		?>
 
