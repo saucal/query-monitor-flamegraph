@@ -22,6 +22,7 @@ class QM_Collector extends \QM_Collector {
 	public $id         = 'flamegraph';
 	protected $data    = array();
 	protected $tracing = array();
+	protected $traced  = array();
 
 	public function name() {
 		return __( 'Flamegraph', 'query-monitor' );
@@ -32,15 +33,29 @@ class QM_Collector extends \QM_Collector {
 			return;
 		}
 
-		add_action( 'qm/flamegraph/trace/start', array( $this, 'start' ), PHP_INT_MAX );
+		add_action( 'qm/flamegraph/trace/start_single', array( $this, 'start_single' ), PHP_INT_MAX );
+		add_action( 'qm/flamegraph/trace/start', array( $this, 'start_trace' ), PHP_INT_MAX );
 		add_action( 'qm/flamegraph/trace/stop', array( $this, 'stop' ), ~PHP_INT_MAX );
 	}
 
-	public function start( $label = '' ) {
+	public function start_single( $label ) {
+		$key = sanitize_key( $label );
+		if ( isset( $this->traced[ $key ] ) ) {
+			return;
+		}
+		$this->traced[ $key ] = true;
+		$this->start( $label );
+	}
+
+	public function start_trace( $label ) {
+		$this->start( $label );
+	}
+
+	protected function start( $label = '' ) {
 		if ( false !== \xdebug_get_tracefile_name() ) {
 			return;
 		}
-		$start_lvl       = count( debug_backtrace( DEBUG_BACKTRACE_IGNORE_ARGS ) ) - 2;
+		$start_lvl       = count( debug_backtrace( DEBUG_BACKTRACE_IGNORE_ARGS ) ) - 3;
 		$this->tracing[] = array(
 			'label'     => $label,
 			'file'      => \xdebug_start_trace( null, XDEBUG_TRACE_COMPUTERIZED ),
