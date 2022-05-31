@@ -98,7 +98,7 @@ class QM_Collector extends \QM_Collector {
 				continue;
 			}
 
-			list( $level, $fn_no, $is_exit, $time, $mem_usage, $func_name, $fn_type, $inc_file ) = $parts;
+			list( $level, $fn_no, $is_exit, $time, $mem_usage, $func_name, $fn_type, $inc_file, $filename ) = $parts;
 
 			if ( apply_filters( 'qm_flamegraph_append_filenames', true ) ) {
 				if ( in_array( $func_name, array( 'require', 'require_once', 'include', 'include_once' ) ) ) {
@@ -107,7 +107,7 @@ class QM_Collector extends \QM_Collector {
 			}
 
 			if ( $func_name === '{main}' ) {
-				$func_name = "{$inc_file}";
+				$func_name = "{$filename}";
 			}
 
 			if ( $level == 1 ) {
