@@ -19,8 +19,9 @@ GNU General Public License for more details.
 
 class QM_Collector extends \QM_Collector {
 
-	public $id = 'flamegraph';
-	protected $data = array();
+	public $id         = 'flamegraph';
+	protected $data    = array();
+	protected $tracing = array();
 
 	public function name() {
 		return __( 'Flamegraph', 'query-monitor' );
@@ -30,6 +31,31 @@ class QM_Collector extends \QM_Collector {
 		if ( ! function_exists( 'xdebug_stop_trace' ) ) {
 			return;
 		}
+
+		add_action( 'qm/flamegraph/trace/start', array( $this, 'start' ), PHP_INT_MAX );
+		add_action( 'qm/flamegraph/trace/stop', array( $this, 'stop' ), ~PHP_INT_MAX );
+	}
+
+	public function start( $label = '' ) {
+		if ( false !== \xdebug_get_tracefile_name() ) {
+			return;
+		}
+		$start_lvl       = count( debug_backtrace( DEBUG_BACKTRACE_IGNORE_ARGS ) ) - 2;
+		$this->tracing[] = array(
+			'label'     => $label,
+			'file'      => \xdebug_start_trace( null, XDEBUG_TRACE_COMPUTERIZED ),
+			'start_lvl' => $start_lvl,
+		);
+	}
+
+	public function stop() {
+		if ( false === \xdebug_get_tracefile_name() ) {
+			return;
+		}
+		if ( empty( $this->tracing ) ) {
+			return;
+		}
+		\xdebug_stop_trace();
 	}
 
 	public function process() {
@@ -37,9 +63,23 @@ class QM_Collector extends \QM_Collector {
 			return;
 		}
 
-		$trace_file = xdebug_stop_trace();
+		if ( false !== \xdebug_get_tracefile_name() ) {
+			if ( empty( $this->tracing ) ) {
+				// Tracing was started with the request
+				$this->tracing[] = array(
+					'label'     => '{main}',
+					'file'      => \xdebug_get_tracefile_name(),
+					'start_lvl' => 1,
+				);
+			}
+			\xdebug_stop_trace();
+		}
 
-		$this->data = $this->process_xdebug_trace( array( 'file' => $trace_file ) );
+		foreach ( $this->tracing as $i => $trace ) {
+			$this->tracing[ $i ] = $this->process_xdebug_trace( $trace );
+		}
+
+		$this->data = $this->tracing;
 	}
 
 	/**
@@ -62,8 +102,25 @@ class QM_Collector extends \QM_Collector {
 			}
 		}
 
-		$time      = 0;
-		$root      = new Flamegraph_Leaf( '-1', '{main}', $time );
+		$time = 0;
+		// Loop till we find TRACE START.
+		if ( $trace->start_lvl > 1 ) {
+			while ( $l = fgets( $handle ) ) {
+				$is_level = is_numeric( substr( $l, 0, strpos( $l, "\t" ) ) );
+				if ( ! $is_level ) {
+					continue;
+				}
+
+				$parts                                  = explode( "\t", $l );
+				list( $level, $fn_no, $is_exit, $time ) = $parts;
+
+				if ( (int) $level === $trace->start_lvl ) {
+					break;
+				}
+			}
+		}
+
+		$root      = new Flamegraph_Leaf( '-1', $trace->label, $time );
 		$stack     = array();
 		$last_time = null;
 		$rows      = 0;
@@ -100,6 +157,13 @@ class QM_Collector extends \QM_Collector {
 
 			list( $level, $fn_no, $is_exit, $time, $mem_usage, $func_name, $fn_type, $inc_file, $filename ) = $parts;
 
+			$real_level = $level;
+			$level = $level - $trace->start_lvl + 1;
+
+			if ( $level < 1 ) {
+				break; // We're below the starting level
+			}
+
 			if ( apply_filters( 'qm_flamegraph_append_filenames', true ) ) {
 				if ( in_array( $func_name, array( 'require', 'require_once', 'include', 'include_once' ) ) ) {
 					$func_name = "{$func_name} ({$inc_file})";
@@ -126,10 +190,16 @@ class QM_Collector extends \QM_Collector {
 			$root->end( $time );
 		}
 
-		fclose( $handle );
-		unlink( $trace->file );
+		if ( $trace->start_lvl > 1 ) {
+			$root->pop();
+		}
 
-		return $root;
+		fclose( $handle );
+		// unlink( $trace->file );
+
+		$trace->trace = $root;
+
+		return $trace;
 	}
 
 }

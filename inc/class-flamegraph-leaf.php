@@ -33,4 +33,16 @@ class Flamegraph_Leaf {
 	public function is( $fn_no ) {
 		return $this->fn_no === $fn_no;
 	}
+
+	public function pop() {
+		if ( empty( $this->children ) ) {
+			return;
+		}
+		$ret = array_pop( $this->children );
+		$this->value -= $ret->value;
+		if ( ! empty( $this->children ) ) {
+			$this->end( end( $this->children )->get_end() );
+		}
+		return $ret;
+	}
 }
