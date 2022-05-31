@@ -148,6 +148,8 @@ class QM_Collector extends \QM_Collector {
 				break; // We're below the starting level
 			}
 
+			$last_time = $time;
+
 			if ( $is_exit ) {
 				if ( ! end( $stack )->is( $fn_no ) ) {
 					continue;
@@ -184,7 +186,7 @@ class QM_Collector extends \QM_Collector {
 		if ( ! empty( $stack ) ) {
 			while ( ! empty( $stack ) ) {
 				$finishing = array_pop( $stack );
-				$finishing->end( $time );
+				$finishing->end( $last_time );
 			}
 		}
 		$root->end( $last_time );
