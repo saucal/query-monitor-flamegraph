@@ -190,7 +190,7 @@ class QM_Collector extends \QM_Collector {
 			$root->end( $time );
 		}
 
-		if ( $trace->start_lvl > 1 ) {
+		if ( $func_name === 'xdebug_stop_trace' ) {
 			$root->pop();
 		}
 
