@@ -9,6 +9,8 @@ namespace QM_Flamegraph;
  */
 
 function register_qm_collector( array $collectors, \QueryMonitor $qm ) {
+	include_once dirname( __FILE__ ) . '/inc/class-tracer.php';
+	include_once dirname( __FILE__ ) . '/inc/class-tracer-xdebug.php';
 	include_once dirname( __FILE__ ) . '/inc/class-flamegraph-leaf.php';
 	include_once dirname( __FILE__ ) . '/inc/class-qm-collector.php';
 	$collectors['flamegraph'] = new QM_Collector();
