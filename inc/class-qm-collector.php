@@ -135,7 +135,7 @@ class QM_Collector extends \QM_Collector {
 			}
 		}
 
-		$root      = new Flamegraph_Leaf( '-1', $trace->label, $time );
+		$root      = null;
 		$stack     = array();
 		$last_time = null;
 		$rows      = 0;
@@ -191,6 +191,9 @@ class QM_Collector extends \QM_Collector {
 			}
 
 			if ( $level == 1 ) {
+				if ( ! isset( $root ) ) {
+					$root = new Flamegraph_Leaf( '-1', $trace->label, $time );
+				}
 				$item = $root->add_children( $fn_no, $func_name, $time );
 			} else {
 				$item = end( $stack )->add_children( $fn_no, $func_name, $time );
