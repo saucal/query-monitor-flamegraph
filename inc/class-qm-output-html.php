@@ -55,42 +55,45 @@ class QM_Output_Html extends \QM_Output_Html {
 				for( var i in data ) {
 					var trace = data[i];
 
-					var chart = flamegraph()
-						.width(1280)
-						.cellHeight(18)
-						.transitionDuration(750)
-						.minFrameSize(5)
-						.transitionEase(d3.easeCubic)
-						.sort(true)
-						//Example to sort in reverse order
-						//.sort(function(a,b){ return d3.descending(a.name, b.name);})
-						.title("")
-						.selfValue(false)
-						.setColorMapper((d, originalColor) =>
-							d.highlight ? "#6aff8f" : originalColor);
+					(function( trace, i ){
+						var chart = flamegraph()
+							.width(1280)
+							.cellHeight(18)
+							.minFrameSize(1)
+							.transitionDuration(750)
+							.transitionEase(d3.easeCubic)
+							//Example to sort in reverse order
+							.title(trace.label)
+							.getName( function(d) {
+								return d.data.name + " | " + d.data.value
+							} )
+							.selfValue(false)
+							.setColorMapper((d, originalColor) =>
+								d.highlight ? "#6aff8f" : originalColor);
 
-					// Example on how to use custom a tooltip.
-					var tip = flamegraph.tooltip.defaultFlamegraphTooltip()
-					.text(d => "name: " + d.data.name + ", value: " + d.data.value);
-					chart.tooltip(tip);
+						// Example on how to use custom a tooltip.
+						var tip = flamegraph.tooltip.defaultFlamegraphTooltip()
+							.text( function(d) { return "name: " + d.data.name + ", value: " + d.data.value } );
+						chart.tooltip(tip);
 
-					// Example on how to use searchById() function in flamegraph.
-					// To invoke this function after loading the graph itself, this function should be registered in d3 datum(data).call()
-					// (See d3.json invocation in this file)
+						// Example on how to use searchById() function in flamegraph.
+						// To invoke this function after loading the graph itself, this function should be registered in d3 datum(data).call()
+						// (See d3.json invocation in this file)
 
 
-					// Example on how to use custom labels
-					// var label = function(d) {
-					//  return "name: " + d.name + ", value: " + d.value;
-					// }
-					// chart.label(label);
+						// Example on how to use custom labels
+						// var label = function(d) {
+						//  return "name: " + d.name + ", value: " + d.value;
+						// }
+						// chart.label(label);
 
-					// Example of how to set fixed chart height
-					// chart.height(540);
+						// Example of how to set fixed chart height
+						// chart.height(540);
 
-					d3.select("#qm-flamegraph-graph-" + i)
-						.datum(trace.trace)
-						.call(chart)
+						d3.select("#qm-flamegraph-graph-" + i)
+							.datum(trace.trace)
+							.call(chart)
+					})(trace, i);
 				}
 
 			</script>
