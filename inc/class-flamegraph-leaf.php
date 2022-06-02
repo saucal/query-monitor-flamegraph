@@ -26,6 +26,14 @@ class Flamegraph_Leaf {
 		$this->value = (int) ( number_format( $this->end - $this->start, 6, '.', '' ) * 1000000 );
 	}
 
+	public function get_fn_no() {
+		return $this->fn_no;
+	}
+
+	public function get_start() {
+		return $this->start;
+	}
+
 	public function get_end() {
 		return $this->end;
 	}
