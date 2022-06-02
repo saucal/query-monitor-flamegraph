@@ -42,6 +42,7 @@ class Tracer_XDebug {
 
 	public function process() {
 		$append_filenames = apply_filters( 'qm_flamegraph_append_filenames', defined( 'QM_FLAMEGRAPH_APPEND_FILENAMES' ) ? QM_FLAMEGRAPH_APPEND_FILENAMES : true );
+		$max_depth        = apply_filters( 'qm_flamegraph_max_depth', defined( 'QM_FLAMEGRAPH_MAX_DEPTH' ) ? QM_FLAMEGRAPH_MAX_DEPTH : 30 );
 
 		$handle = fopen( $this->file, 'r' );
 
@@ -115,7 +116,7 @@ class Tracer_XDebug {
 
 			list( $real_level, $fn_no, $is_exit, $time, $mem_usage, $func_name, $fn_type, $inc_file, $filename ) = $parts;
 
-			if ( count( $stack ) >= 5 ) { // TODO: Make Depth Configurable
+			if ( count( $stack ) >= $max_depth ) {
 				continue;
 			}
 

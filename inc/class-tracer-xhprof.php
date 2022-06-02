@@ -62,10 +62,12 @@ class Tracer_XHProf {
 	}
 
 	public function process() {
+		$max_depth = apply_filters( 'qm_flamegraph_max_depth', defined( 'QM_FLAMEGRAPH_MAX_DEPTH' ) ? QM_FLAMEGRAPH_MAX_DEPTH : 30 );
+
 		$root = new Flamegraph_Leaf( 'main()', $this->label, 0 );
 
 		foreach ( $this->data as $time => $call_stack ) {
-			$call_stack = explode( '==>', $call_stack );
+			$call_stack = array_slice( explode( '==>', $call_stack ), 0, $max_depth + 1 );
 
 			$this->add_children_to_nodes( array( $root ), $call_stack );
 		}
