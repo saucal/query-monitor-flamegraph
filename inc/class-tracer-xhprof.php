@@ -44,9 +44,9 @@ class Tracer_XHProf {
 	 * Accepts [ Node, Node ], [ main, wp-settings, sleep ]
 	 */
 	protected function add_children_to_nodes( $childs, $children, $parent = null ) {
-		$node = count( $childs ) > 0 ? end( $childs ) : null;
+		$node       = count( $childs ) > 0 ? end( $childs ) : null;
 		$this_child = array_shift( $children );
-		$time = (int) ini_get( 'xhprof.sampling_interval' );
+		$time       = (int) ini_get( 'xhprof.sampling_interval' );
 
 		if ( ! $time ) {
 			$time = 100000;
