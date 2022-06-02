@@ -41,6 +41,8 @@ class Tracer_XDebug {
 	}
 
 	public function process() {
+		$append_filenames = apply_filters( 'qm_flamegraph_append_filenames', defined( 'QM_FLAMEGRAPH_APPEND_FILENAMES' ) ? QM_FLAMEGRAPH_APPEND_FILENAMES : true );
+
 		$handle = fopen( $this->file, 'r' );
 
 		if ( ! $handle ) {
@@ -117,7 +119,7 @@ class Tracer_XDebug {
 				continue;
 			}
 
-			if ( apply_filters( 'qm_flamegraph_append_filenames', true ) ) {
+			if ( $append_filenames ) {
 				if ( in_array( $func_name, array( 'require', 'require_once', 'include', 'include_once' ) ) ) {
 					$func_name = "{$func_name} ({$inc_file})";
 				}
