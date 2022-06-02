@@ -26,6 +26,13 @@ class Flamegraph_Leaf {
 		$this->value = (int) ( number_format( $this->end - $this->start, 6, '.', '' ) * 1000000 );
 	}
 
+	public function add_time( $time ) {
+		if ( is_null( $this->end ) ) {
+			$this->end = $this->start;
+		}
+		$this->end( $this->end + $time );
+	}
+
 	public function get_fn_no() {
 		return $this->fn_no;
 	}

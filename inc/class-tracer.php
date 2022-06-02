@@ -7,6 +7,8 @@ class Tracer {
 	protected static function maybe_define_tracer_class() {
 		if ( function_exists( 'xdebug_stop_trace' ) ) {
 			self::$tracer_class = Tracer_XDebug::class;
+		} elseif ( function_exists( 'xhprof_enable' ) ) {
+			self::$tracer_class = Tracer_XHProf::class;
 		}
 	}
 
