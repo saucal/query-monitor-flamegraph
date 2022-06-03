@@ -11,14 +11,21 @@ class Flamegraph_Leaf {
 	public function __construct( $fn_no, $name, $start ) {
 		$this->fn_no    = $fn_no;
 		$this->name     = $name;
-		$this->start    = number_format( $start, 6, '.', '' );
 		$this->children = array();
+		$this->start( $start );
 	}
 
 	public function add_children( $fn_no, $name, $start ) {
 		$item             = new Flamegraph_Leaf( $fn_no, $name, $start );
 		$this->children[] = $item;
 		return $item;
+	}
+
+	public function start( $start ) {
+		$this->start = number_format( $start, 6, '.', '' );
+		if ( ! is_null( $this->end ) ) {
+			$this->end( $this->end );
+		}
 	}
 
 	public function end( $time ) {
