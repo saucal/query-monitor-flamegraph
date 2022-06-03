@@ -4,9 +4,9 @@ namespace QM_Flamegraph;
 class Tracer_XHProf {
 	protected static $current_trace;
 	protected static $autostarted = false;
-	private $data = array();
-	public $label = null;
-	public $trace = null;
+	private $data                 = array();
+	public $label                 = null;
+	public $trace                 = null;
 
 	public function __construct( $label ) {
 		$this->label = $label;

@@ -60,7 +60,7 @@ class Flamegraph_Leaf {
 		if ( empty( $this->children ) ) {
 			return;
 		}
-		$ret = array_pop( $this->children );
+		$ret          = array_pop( $this->children );
 		$this->value -= $ret->value;
 		if ( ! empty( $this->children ) ) {
 			$this->end( end( $this->children )->get_end() );
