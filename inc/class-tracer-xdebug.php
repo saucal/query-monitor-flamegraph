@@ -147,6 +147,9 @@ class Tracer_XDebug {
 				$finishing->end( $last_time );
 			}
 		}
+		if ( ! isset( $root ) ) {
+			$root = new Flamegraph_Leaf( '-1', $this->label, $last_time );
+		}
 		$root->end( $last_time );
 
 		if ( 'xdebug_stop_trace' === $func_name ) {
