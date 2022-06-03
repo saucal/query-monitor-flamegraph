@@ -14,6 +14,9 @@ function register_qm_collector( array $collectors, \QueryMonitor $qm ) {
 	include_once dirname( __FILE__ ) . '/inc/class-tracer-xhprof.php';
 	include_once dirname( __FILE__ ) . '/inc/class-flamegraph-leaf.php';
 	include_once dirname( __FILE__ ) . '/inc/class-qm-collector.php';
+	if ( defined( 'QM_FLAMEGRAPH_AUTOSTART' ) && QM_FLAMEGRAPH_AUTOSTART ) {
+		Tracer::maybe_autostart();
+	}
 	$collectors['flamegraph'] = new QM_Collector();
 	return $collectors;
 }

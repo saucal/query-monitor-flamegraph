@@ -29,6 +29,7 @@ class Tracer_XDebug {
 		self::$current_trace = new self( $label );
 		return self::$current_trace;
 	}
+	public static function maybe_autostart() {}
 	public static function auto_started() {
 		return ini_get( 'xdebug.start_with_request' ) === '1';
 	}

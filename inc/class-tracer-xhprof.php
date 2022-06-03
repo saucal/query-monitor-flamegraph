@@ -3,6 +3,7 @@ namespace QM_Flamegraph;
 
 class Tracer_XHProf {
 	protected static $current_trace;
+	protected static $autostarted = false;
 	private $data = array();
 	public $label = null;
 	public $trace = null;
@@ -24,11 +25,14 @@ class Tracer_XHProf {
 		self::$current_trace = new self( $label );
 		return self::$current_trace;
 	}
+	public static function maybe_autostart() {
+		self::$autostarted = self::start_trace( '{main}' );
+	}
 	public static function auto_started() {
-		return false;
+		return is_object( self::$autostarted );
 	}
 	public static function get_auto_started_trace() {
-		return null;
+		return self::$autostarted;
 	}
 	public static function stop_trace() {
 		$data = \xhprof_sample_disable();
