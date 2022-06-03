@@ -8,14 +8,8 @@ class Tracer_XHProf {
 	public $label = null;
 	public $trace = null;
 
-	public function __construct( $label, $trace_file = null, $start_lvl = null ) {
+	public function __construct( $label ) {
 		$this->label = $label;
-		if ( is_null( $start_lvl ) ) {
-			$this->start_lvl = count( debug_backtrace( DEBUG_BACKTRACE_IGNORE_ARGS ) ) - 7;
-		} else {
-			$this->start_lvl = $start_lvl;
-		}
-
 		\xhprof_sample_enable();
 	}
 	public static function is_tracing() {
