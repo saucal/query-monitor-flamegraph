@@ -153,7 +153,7 @@ class Tracer_XDebug {
 		}
 		$root->end( $last_time );
 
-		if ( 'xdebug_stop_trace' === $func_name ) {
+		if ( $this->start_lvl !== 1 && 'xdebug_stop_trace' === $func_name ) {
 			$root->pop();
 		}
 
