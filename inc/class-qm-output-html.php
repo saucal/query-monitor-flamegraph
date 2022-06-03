@@ -65,7 +65,7 @@ class QM_Output_Html extends \QM_Output_Html {
 							//Example to sort in reverse order
 							.title(trace.label)
 							.getName( function(d) {
-								return d.data.name + " | " + d.data.value
+								return d.data.name + " | " + ( d.data.value / 1000000 )
 							} )
 							.selfValue(false)
 							.setColorMapper((d, originalColor) =>
@@ -73,7 +73,7 @@ class QM_Output_Html extends \QM_Output_Html {
 
 						// Example on how to use custom a tooltip.
 						var tip = flamegraph.tooltip.defaultFlamegraphTooltip()
-							.text( function(d) { return "name: " + d.data.name + ", value: " + d.data.value } );
+							.text( function(d) { return "name: " + d.data.name + ", value: " + ( d.data.value / 1000000 ) } );
 						chart.tooltip(tip);
 
 						// Example on how to use searchById() function in flamegraph.
